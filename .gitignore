@@ -1,0 +1,4 @@
+.kaggle-cache/
+.vscode/
+.idea/
+__pycache__
