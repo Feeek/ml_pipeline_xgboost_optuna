@@ -11,9 +11,6 @@ from pandas import DataFrame
 loader = DatasetLoader()
 df: DataFrame = loader.load()
 
-# Usunięcie 1. kolumny (z pozycjami)
-df = df.iloc[:, 1:]
-
 print("\nBraki danych:")
 print(df.isnull().sum())
 

@@ -1,16 +1,12 @@
-import pandas as pd
 import xgboost as xgb
 import shap
 import matplotlib.pyplot as plt
 
+from dataset_loader import DatasetLoader
 
 # Wczytanie danych
-X_train = pd.read_csv("X_train.csv")
-X_train = X_train.drop(columns=["Unnamed: 0"])
-X_test = pd.read_csv("X_test.csv")
-X_test = X_test.drop(columns=["Unnamed: 0"])
-y_train = pd.read_csv("y_train.csv").values.ravel()
-y_test = pd.read_csv("y_test.csv").values.ravel()
+loader = DatasetLoader()
+x_train, x_test, y_train, y_test = loader.load(predict="salary_in_usd")
 
 # Trenowanie modelu z najlepszymi parametrami (Optuna)
 model = xgb.XGBRegressor(
@@ -19,7 +15,7 @@ model = xgb.XGBRegressor(
     n_estimators=249,
     objective="reg:squarederror"
 )
-model.fit(X_train, y_train)
+model.fit(x_train, y_train)
 
 # 1. Feature importance
 xgb.plot_importance(model, importance_type="weight")
@@ -28,11 +24,11 @@ plt.tight_layout()
 plt.show()
 
 # 2. SHAP values (interpretacja modelu)
-explainer = shap.Explainer(model, X_train)
-shap_values = explainer(X_test)
+explainer = shap.Explainer(model, x_train)
+shap_values = explainer(x_test)
 
 # Summary plot (ważność cech)
-shap.summary_plot(shap_values, X_test, plot_type="bar")
+shap.summary_plot(shap_values, x_test, plot_type="bar")
 
 # Summary plot (rozrzut wpływu cech na predykcje)
-shap.summary_plot(shap_values, X_test)
+shap.summary_plot(shap_values, x_test)

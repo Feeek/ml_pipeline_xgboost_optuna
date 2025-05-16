@@ -2,13 +2,13 @@
 
 import pandas as pd
 import xgboost as xgb
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
+
+from dataset_loader import DatasetLoader
 
 # Wczytanie danych
-X_train = pd.read_csv("X_train.csv")
-X_test = pd.read_csv("X_test.csv")
-y_train = pd.read_csv("y_train.csv").values.ravel()
-y_test = pd.read_csv("y_test.csv").values.ravel()
+loader = DatasetLoader()
+x_train, x_test, y_train, y_test = loader.load(predict="salary_in_usd")
 
 # Tworzenie i trenowanie modelu
 model = xgb.XGBRegressor(
@@ -18,11 +18,11 @@ model = xgb.XGBRegressor(
     objective="reg:squarederror"
 )
 
-model.fit(X_train, y_train)
+model.fit(x_train, y_train)
 
 # Przewidywanie i obliczenie RMSE
-preds = model.predict(X_test)
-rmse = mean_squared_error(y_test, preds, squared=False)
+preds = model.predict(x_test)
+rmse = root_mean_squared_error(y_test, preds)
 
 print("Model XGBoost został wytrenowany.")
 print(f"RMSE (Root Mean Squared Error): {rmse:.2f}")

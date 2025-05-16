@@ -5,7 +5,6 @@ import numpy as np
 
 loader = DatasetLoader()
 df: DataFrame = loader.load()
-df = df.iloc[:, 1:]
 
 print("\nStatystyki opisowe:")
 describe: DataFrame = df.describe()

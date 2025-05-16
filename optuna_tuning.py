@@ -1,34 +1,32 @@
 import pandas as pd
 import xgboost as xgb
 import optuna
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
+
+from dataset_loader import DatasetLoader
 
 # Wczytanie danych
-X_train = pd.read_csv("X_train.csv")
-X_train = X_train.drop(columns=["Unnamed: 0"])
-X_test = pd.read_csv("X_test.csv")
-X_test = X_test.drop(columns=["Unnamed: 0"])
-y_train = pd.read_csv("y_train.csv").values.ravel()
-y_test = pd.read_csv("y_test.csv").values.ravel()
+loader = DatasetLoader()
+x_train, x_test, y_train, y_test = loader.load(predict="salary_in_usd")
 
 # Funkcja celu do optymalizacji
-def objective(trial):
+def objective(trial: optuna.Trial):
     params = {
         'max_depth': trial.suggest_int('max_depth', 3, 10),
-        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3, step=0.01),
         'n_estimators': trial.suggest_int('n_estimators', 100, 300),
         'objective': 'reg:squarederror'
     }
 
     model = xgb.XGBRegressor(**params)
-    model.fit(X_train, y_train)
-    preds = model.predict(X_test)
-    rmse = mean_squared_error(y_test, preds, squared=False)
-    return rmse
+    model.fit(x_train, y_train)
+    preds = model.predict(x_test)
+
+    return root_mean_squared_error(y_test, preds)
 
 # Optymalizacja
 study = optuna.create_study(direction="minimize")
-study.optimize(objective, n_trials=30)
+study.optimize(objective, n_trials=100)
 
 # Zapis najlepszych parametrów do pliku
 with open("best_params.txt", "w") as f:
