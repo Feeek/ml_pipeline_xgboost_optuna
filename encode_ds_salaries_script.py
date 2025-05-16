@@ -1,4 +1,3 @@
-# zamiana tekstu na liczby w ds_salaries.csv
 
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
@@ -11,7 +10,7 @@ print("Kolumny typu 'object' (tekstowe):")
 print(df.select_dtypes(include='object').columns)
 
 # Zastosowanie LabelEncoder do każdej kolumny tekstowej
-label_encoders = {}  # słownik do późniejszego odkodowania, jeśli potrzebne
+label_encoders = {}  # słownik do późniejszego odkodowania
 
 for col in df.select_dtypes(include='object').columns:
     le = LabelEncoder()
