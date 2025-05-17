@@ -37,5 +37,5 @@ def detect_outliers_iqr(df: DataFrame, threshold: float = 1.5):
 
 print("\nOutliery wg IQR:")
 outliers = detect_outliers_iqr(df)
-for col, idxs in outliers.items():
-    print(f"{col}: {len(idxs)} wartości odstających")
+for col, items in outliers.items():
+    print(f"{col}: {len(items)} wartości odstających")
