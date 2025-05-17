@@ -22,7 +22,7 @@ def detect_outliers_iqr(df: DataFrame, threshold: float = 1.5):
     outlier_indices = {}
     numeric_cols = df.select_dtypes(include=np.number).columns
 
-    for col in numeric_cols:
+    for col in numeric_cols: 
         Q1 = df[col].quantile(0.25)
         Q3 = df[col].quantile(0.75)
         IQR = Q3 - Q1
