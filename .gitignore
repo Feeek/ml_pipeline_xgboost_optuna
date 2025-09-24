@@ -1,4 +1,5 @@
 .kaggle-cache/
 .vscode/
+.venv
 .idea/
 __pycache__

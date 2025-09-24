@@ -1,10 +1,10 @@
-from dataset_loader import DatasetLoader
+from etl import ETLPipeline
 from pandas import DataFrame
 
 import numpy as np
 
-loader = DatasetLoader()
-df: DataFrame = loader.load()
+loader = ETLPipeline()
+df: DataFrame = loader.extract()
 
 print("\nStatystyki opisowe:")
 describe: DataFrame = df.describe()

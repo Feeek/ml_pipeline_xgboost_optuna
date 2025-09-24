@@ -3,11 +3,11 @@ import xgboost as xgb
 import optuna
 from sklearn.metrics import root_mean_squared_error
 
-from dataset_loader import DatasetLoader
+from etl import ETLPipeline
 
 # Wczytanie danych
-loader = DatasetLoader()
-x_train, x_test, y_train, y_test = loader.load(predict="salary_in_usd")
+loader = ETLPipeline()
+x_train, x_test, y_train, y_test = loader.extract(predict="salary_in_usd")
 
 # Funkcja celu do optymalizacji
 def objective(trial: optuna.Trial):

@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import root_mean_squared_error
 
 import ast
-from dataset_loader import DatasetLoader
+from etl import ETLPipeline
 
 # Wczytanie danych
-loader = DatasetLoader()
-x_train, x_test, y_train, y_test = loader.load(predict="salary_in_usd")
+loader = ETLPipeline()
+x_train, x_test, y_train, y_test = loader.extract(predict="salary_in_usd")
 
 # Trenowanie modelu z najlepszymi parametrami (Optuna)
 with open("best_params.txt", "r") as f:

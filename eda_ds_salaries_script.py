@@ -4,12 +4,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from dataset_loader import DatasetLoader
+from etl import ETLPipeline
 from pandas import DataFrame
 
 # Wczytanie danych z pliku CSV
-loader = DatasetLoader()
-df: DataFrame = loader.load()
+loader = ETLPipeline()
+df: DataFrame = loader.extract()
+df = df.drop(['salary'], axis=1)
 
 print("\nBraki danych:")
 print(df.isnull().sum())

@@ -1,0 +1,19 @@
+{
+    "experience_level": {
+        "SE": "Senior",
+        "MI": "Mid",
+        "EN": "Entry",
+        "EX": "Executive"
+    },
+    "employment_type": {
+        "FT": "Full-time",
+        "PT": "Part-time",
+        "CT": "Contract",
+        "FL": "Freelance"
+    },
+    "remote_ratio": {
+        "0": "On-Site",
+        "50": "Hybrid",
+        "100": "Remote"
+    }
+}
