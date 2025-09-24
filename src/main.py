@@ -1,6 +1,7 @@
+from eda import EDA
 from etl import ETLPipeline
 
-# Data extraction / transformation / loading
+
 etl = ETLPipeline()
 
 etl.extract("ruchi798/data-science-job-salaries", "ds_salaries.csv")
@@ -12,6 +13,8 @@ etl.transform()
 dataset = etl.load()
 
 
-missing_values = dataset.isnull().sum().sum()
-print(f"Missing values or NaNs: {missing_values}")
+eda = EDA(dataset)
+eda.describe()
+eda.correlations(target="salary_in_usd", exclude_cols=["salary"])
+eda.outliers(exclude_cols=["work_year", "salary"], top_n=5)
 

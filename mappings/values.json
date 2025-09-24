@@ -1,4 +1,9 @@
 {
+    "company_size": {
+        "S": "Small",
+        "M": "Medium",
+        "L": "Large"
+    },
     "experience_level": {
         "SE": "Senior",
         "MI": "Mid",
