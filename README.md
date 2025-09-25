@@ -49,8 +49,8 @@ Opis: Finalnie jedna czysta tabela gotowa do analizy.
 - correlations: Pearson/Spearman/Kendall + kategorie (correlation ratio)
 - outliers: boxploty numerycznych, top-N kategorii
 ![Koleracja z celem](project\images\Coleration.jpg)
-![EDA Top-5](project\images\EDA Graphs.jpg)
-![Outliery w salary_in_usd](project\images\Outliers in USD salary.jpg)
+![EDA Top-5](project\images\EDA_Graphs.jpg)
+![Outliery w salary_in_usd](project\images\Outliers_in_USD_salary.jpg)
 
 Opis: Jedna klasa, komplet podstawowych raportow EDA.
 
