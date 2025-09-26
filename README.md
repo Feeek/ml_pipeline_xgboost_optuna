@@ -1,103 +1,77 @@
-# Predykcja wynagrodzen (XGBoost) – HR Usecase
+# Salary Prediction Project – HR Analytics with XGBoost & SHAP
 
-1. Cel
-- Predykcja wynagrodzen w USD dla roli data/IT
-- Pipeline: ETL + EDA + przygotowanie danych pod XGBoost
-- Wartosc dla HR: szybsze i spojne widełki ofert, wsparcie negocjacji
+## Cel projektu
+Celem analizy było stworzenie pełnego procesu (pipeline), który:
+- przetwarza dane o wynagrodzeniach w branży IT/Data,
+- identyfikuje czynniki najsilniej wpływające na pensje,
+- przewiduje wysokość wynagrodzeń z wykorzystaniem modelu XGBoost,
+- wyjaśnia decyzje modelu przy użyciu metod interpretowalności (SHAP).
 
-Opis: budujemy wiarygodny pipeline danych i analize, na ktorej oprzemy model prognozujacy pensje.
+Projekt ma charakter zarówno analityczny (EDA), jak i predykcyjny (ML), a wnioski są formułowane w języku zrozumiałym także dla HR i biznesu.
 
-2. Problem biznesowy (HR)
-- Rozrzut stawek i dlugi time-to-offer
-- Ryzyko przepłacenia lub niedoszacowania
-- Potrzeba: rekomendacja widelek dla profilu kandydata
+---
 
-Opis: Celem jest ustandaryzowanie decyzji i skrocenie procesu ofertowania.
+## Pipeline
+1. **ETL** – czyszczenie i standaryzacja danych, usuwanie duplikatów.  
+2. **EDA** – analiza rozkładów, korelacji, outlierów, różnic regionalnych.  
+3. **Feature Engineering** – klastrowanie ról do obszarów kompetencji (`p_ai`, `p_data`, `p_software`, `p_academic`).  
+4. **Segmentacja** – podział zbioru na dwa clustery: **US+CA+UK** vs **Rest**.  
+5. **Modelowanie** – XGBoost + wstępne strojenie hiperparametrów (Optuna).  
+6. **Interpretacja** – analiza SHAP (ważność cech globalnie i lokalnie).  
+7. **Wnioski** – kluczowe czynniki wynagrodzeń, ocena jakości modelu, kierunki rozwoju.
 
-3. Zrodla danych (Kaggle)
-- ruchi798/data-science-job-salaries – ds_salaries.csv
-- sazidthe1/data-science-salaries – data_science_salaries.csv
-- arnabchaki/data-science-salaries-2025 – salaries.csv
-- Ladowanie przez kagglehub (cache w .kaggle-cache)
+---
 
-Opis: Trzy spojne zrodla podnosza pokrycie rynku i aktualnosc.
+## Dane
+- Rozmiar: **52,938 wierszy × 11 kolumn**  
+- Braki danych: **0**  
+- Dominujące cechy próby:
+  - lokalizacja: **USA** (ponad 40 tys. rekordów),
+  - stanowiska: Data Scientist / Data Engineer / Data Analyst,
+  - forma zatrudnienia: głównie **Full-time**,
+  - firmy: najczęściej **Medium**,
+  - waluta: **USD**.
 
-4. ETL – Extract (etl.py)
-- extract(url, file): pobranie pliku z Kaggle
-- Autodetekcja i usuniecie sztucznej kolumny indeksu
-- Kazdy DataFrame trafia do self.datasets
+---
 
-Opis: Usuwamy smieciowe indeksy powstale po eksportach.
+## Wyniki modeli
+| Segment        | RMSE   | MAE   | R²     | Interpretacja |
+|----------------|--------|-------|--------|---------------|
+| **US+CA+UK**   | 51,700 | 42,503| 0.231  | Model uchwycił część wzorców, ale sporo zmienności pozostaje niewyjaśnione. |
+| **Rest**       | 40,890 | 31,401| 0.006  | Model praktycznie nie wyjaśnia płac – dane są zbyt różnorodne i mało liczne. |
 
-5. ETL – Transform (etl.py)
-- Mapowania: mappings/columns.json, mappings/values.json
-- Standaryzacja wartosci (skroty -> etykiety)
-- Normalizacja krajow przez country_converter (cache)
-- Zmiana nazw kolumn na standard
+**Wnioski:**  
+- Najlepsze wyniki uzyskano dla regionu **US+CA+UK**, gdzie dane są liczne i spójne.  
+- Segment **Rest** wymaga dodatkowych informacji (np. koszty życia, wskaźniki gospodarcze).  
 
-Opis: Celem jest ujednolicenie struktur i etykiet.
+---
 
-6. ETL – Load (etl.py)
-- Konkatenacja wszystkich zestawow
-- drop_duplicates, reset_index
-- Sortowanie po work_year rosnaco
+## Kluczowe obserwacje z EDA
+- **Stanowisko (`job_title`)** i **doświadczenie (`experience_level`)** – główne determinanty płac.  
+- **Geografia** – pensje w USA i Kanadzie znacznie przewyższają Europę kontynentalną; w grupie Rest wyróżnia się Australia.  
+- **Rozmiar firmy** – duże organizacje częściej oferują wyższe i bardziej zróżnicowane płace.  
+- **Tryb pracy** – (On-site/Remote/Hybrid) nie różnicuje istotnie wynagrodzeń w porównaniu z lokalizacją i rolą.  
 
-Opis: Finalnie jedna czysta tabela gotowa do analizy.
+---
 
-7. EDA – klasa EDA (eda.py)
-- describe: braki, wymiar, statystyki
-- correlations: Pearson/Spearman/Kendall + kategorie (correlation ratio)
-- outliers: boxploty numerycznych, top-N kategorii
-![Koleracja z celem](project\images\Coleration.jpg)
-![EDA Top-5](project\images\EDA_Graphs.jpg)
-![Outliery w salary_in_usd](project\images\Outliers_in_USD_salary.jpg)
+## Kierunki rozwoju
+- **Strojenie hiperparametrów** – pełna optymalizacja Optuna (200–500 prób).  
+- **Lepsza transformacja celu** – logarytmizacja wynagrodzeń, skalowanie per-region.  
+- **Nowe cechy** – koszty życia, makroekonomia, dokładniejsze klasyfikacje stanowisk.  
+- **Walidacja czasowa** – testowanie generalizacji na ostatnich latach, monitoring dryfu danych.  
 
-Opis: Jedna klasa, komplet podstawowych raportow EDA.
+---
 
-8. EDA – korelacje z celem
-- Numeryczne: corrwith(target) (Pearson/Spearman/Kendall)
-- Kategoryczne: correlation ratio (eta) przez factorize + wariancje
+## Struktura repozytorium
+- `etl.py` – przygotowanie danych, czyszczenie, standaryzacja.  
+- `eda.py`, `region_eda.py` – analiza eksploracyjna i wizualizacje.  
+- `feature_eng.py` – inżynieria cech, klastrowanie ról.  
+- `xgb.py` – modelowanie XGBoost + Optuna.  
+- `main_pres.ipynb` – finalny notatnik prezentacyjny (opis + wyniki).  
 
-Opis: Pozwala porownywac w jednym szkielecie liczby i kategorie.
+---
 
-9. Orkiestracja (main.py)
-- ETLPipeline(): extract x3 -> transform -> load
-- EDA(dataset): describe, correlations(salary_in_usd), outliers
-
-Opis: Jeden skrypt uruchamia caly proces.
-
-10. Analiza w czasie (dump.py)
-- Zaladowanie datasetu z ETL
-- Usuniecie kolumn ryzykownych do przecieku (np. salary)
-- Label-encoding kategorii
-- Heatmapa korelacji + barplot korelacji z celem per rok
-
-Opis: Rentgen korelacji i trendow rok po roku.
-
-11. Model i strojenie – gdzie wpinamy (High level)
-- Po ETL/EDA mamy jednolite kolumny i zrozumiale cechy
-- Split train/valid/test, obrobka outlierow
-- XGBoost + Optuna (RMSE w USD)
-
-Opis: To przygotowanie pod produkcyjny model predykcyjny.
-
-12. Uzycie w HR
-- Sugerowanie widelek oferty dla profilu
-- What-if: remote vs on-site, region, rozmiar firmy
-- Audyt czynnikow (feature importance, SHAP)
-
-Opis: Wartosc: szybciej, spojniej i z uzasadnieniem decyzyjnym.
-
-13. KPI i ryzyka
-- KPI: ↓ time-to-offer, ↑ spojnosci widelek, oszczednosci
-- Ryzyka: bias, drift rynkowy, RODO
-- Mitigacje: audyt cech, monitoring RMSE, retrainy okresowe
-
-Opis: Odpowiedzialne wykorzystanie i nadzor jakosci.
-
-14. Roadmap
-- Featury: is_remote, same_country, grupy rol
-- Log-cel + KFold + regularyzacja
-- Dashboard (Power BI/Streamlit), integracja z ATS/HRIS
-
-Opis: Plan rozwoju i produktowe wdrozenie dla HR.
+## Podsumowanie
+Projekt pokazuje, jak zbudować kompletny proces: **od danych surowych, przez analizę i inżynierię cech, po modelowanie i interpretację wyników**.  
+Wyniki wskazują, że prognozowanie płac jest możliwe z umiarkowaną skutecznością w regionach z dużą liczbą obserwacji (USA, Kanada, UK), natomiast w innych wymaga dalszego wzbogacania danych.  
+Dzięki analizie SHAP wnioski są **transparentne i zrozumiałe także dla HR i biznesu**.
