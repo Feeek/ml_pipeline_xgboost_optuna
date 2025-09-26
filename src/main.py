@@ -24,4 +24,6 @@ eng = FeatureEngineer(dataset)
 eng.cleanup()
 eng.prepare()
 eng.cluster_careers("mappings/topics.json")
-eng.print_clusters(examples_per_group=10)
+eng.print_examples()
+
+

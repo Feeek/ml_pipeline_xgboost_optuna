@@ -1,13 +1,12 @@
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from pandas import DataFrame
 from rapidfuzz import fuzz
 from tqdm import tqdm
 import json
-from collections import Counter
-import numpy as np
+from datasets import Dataset
+from transformers.pipelines.pt_utils import KeyDataset
 
 # Disable HDBSCAN deprecation warnings
 import warnings
@@ -19,7 +18,11 @@ class FeatureEngineer():
     def __init__(self, dataset: DataFrame, model_name="all-MiniLM-L6-v2"):
         self.dataset = dataset
         self.model = SentenceTransformer(model_name)
-        self.classifier = pipeline("zero-shot-classification", model="cross-encoder/nli-deberta-v3-base")
+
+        self.classifier = pipeline(
+            "zero-shot-classification", 
+            model="facebook/bart-large-mnli"
+        )
 
 
     def cleanup(self):
@@ -113,49 +116,48 @@ class FeatureEngineer():
 
         self.dataset['research_related'] = self.dataset["job_title"].apply(is_about_research)
 
-    def cluster_careers(self, categories_json: str, threshold: float = 0.5):
+
+    def cluster_careers(self, categories_json: str, batch_size: int = 16):
         with open(categories_json, "r", encoding="utf-8") as f:
             categories: dict = json.load(f)
 
         JOB_TITLE = "job_title"
         titles = self.dataset[JOB_TITLE].unique().tolist()
 
-        # budujemy etykiety rozszerzone o warianty
-        candidate_labels = list(categories.values())
-        label2cat = {v: k for k, v in categories.items()}
+        labels = list(categories.keys())
+        candidate_labels = [categories[l] for l in labels]
+        inv_map = {categories[l]: l for l in labels}
 
-        mapping = {}
-        confidences = {}
+        ds = Dataset.from_dict({"text": titles})
 
-        for t in tqdm(titles, desc="Zero-shot classifying"):
-            result = self.classifier(t, candidate_labels, multi_label=False)
-            best_label = result["labels"][0]
-            best_score = result["scores"][0]
+        outputs = self.classifier(
+            KeyDataset(ds, "text"),
+            candidate_labels,
+            multi_label=True,
+            batch_size=batch_size,
+            truncation=True
+        )
 
-            if best_score < threshold:
-                mapping[t] = "Other"
-            else:
-                mapping[t] = label2cat[best_label]   # mapujemy na główną kategorię
+        soft = {}
+        for t, res in tqdm(zip(titles, outputs), total=len(titles), desc="Zero-shot scoring"):
+            s = {inv_map[label]: score for label, score in zip(res["labels"], res["scores"])}
+            soft[t] = s
 
-            confidences[t] = float(best_score)
-
-        self.dataset["career_group"] = self.dataset[JOB_TITLE].map(mapping)
-        self.dataset["career_confidence"] = self.dataset[JOB_TITLE].map(confidences)
-
+        for lab in labels:
+            col = f"p_{lab.lower()}"
+            self.dataset[col] = self.dataset[JOB_TITLE].map(lambda x: soft[x][lab])
 
 
-    def print_clusters(self, examples_per_group=3):
-        import random
+    def print_examples(self, n=30):
+        sample = self.dataset.sample(n=min(n, len(self.dataset)), random_state=42)
 
-        groups = self.dataset.groupby("career_group")["job_title"].unique()
+        # znajdź kolumny, które kończą się na "_related" lub zaczynają na "p_"
+        related_cols = [c for c in self.dataset.columns if c.startswith("p_")]
 
-        for group_name, titles in groups.items():
-            sample_titles = random.sample(list(titles), min(examples_per_group, len(titles)))
-            print(f"\nGrupa: {group_name}")
-            for t in sample_titles:
-                print(f"  - {t}")
-            if len(titles) > examples_per_group:
-                print(f"  ... i {len(titles) - examples_per_group} więcej")
+        for _, row in sample.iterrows():
+            title = row["job_title"]
+            scores = ", ".join([f"{col}={row[col]:.2f}" for col in related_cols])
+            print(f"{title:<30} | {scores}")
 
 
     def _get_stripped_column(self, column: str, words: list[str]):

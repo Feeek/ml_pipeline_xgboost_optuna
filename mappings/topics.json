@@ -1,6 +1,6 @@
 {
-    "AI": "This job is about artificial intelligence and machine learning.",
-    "Data": "This job is about data science, analytics and business intelligence.",
-    "Software": "This job is about software engineering and programming.",
-	"Academic": "This job is about academic research, publications and scientific investigation."
+    "AI": "This job is primarily about artificial intelligence, machine learning, deep learning, natural language processing, computer vision, and related fields. Typical roles include Machine Learning Engineer, AI Researcher, NLP Engineer or Computer Vision Specialist, rather than generic software developers or business managers.",
+    "Data": "This job is primarily about data science, analytics, data engineering, business intelligence, reporting and big data systems. Typical roles include Data Scientist, Data Analyst, BI Developer or Data Engineer, rather than general software programmers or academic researchers.",
+    "Software": "This job is primarily about designing, building and maintaining software systems, programming, application development and engineering practices, including specialized engineering roles. Typical roles include Software Engineer, Backend Developer, Frontend Developer or Systems Engineer, rather than academic scientists or pure business analysts.",
+    "Academic": "This job is primarily about academic research, scientific investigation, publishing papers, doctoral or postdoctoral studies, and fundamental science in universities or research institutions. Typical roles include PhD Student, Postdoctoral Researcher, Professor or Research Fellow, rather than industry engineers or applied data analysts."
 }
