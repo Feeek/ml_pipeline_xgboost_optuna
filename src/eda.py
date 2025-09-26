@@ -4,8 +4,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pandas import DataFrame
 
-from sklearn.preprocessing import OneHotEncoder
-
 NEW_LINE = '\n\n'
 
 
@@ -120,4 +118,24 @@ class EDA():
             axes[j].set_visible(False)
 
         plt.tight_layout(pad=3.0)
+        plt.show()
+
+
+    def geography_salary(self, top_n=15):
+        """95. percentyl wynagrodzeń wg lokalizacji pracownika z dynamicznym shrinkage"""
+        grouped = self.dataset.groupby("employee_residence")["salary_in_usd"]
+        counts = grouped.count()
+        quantiles = grouped.quantile(0.95)   # zamiast mean()
+        global_q95 = self.dataset["salary_in_usd"].quantile(0.95)
+
+        n_max = counts.max()
+        weights = np.log1p(counts) / np.log1p(n_max)
+        scores = weights * quantiles + (1 - weights) * global_q95
+        top = scores.sort_values(ascending=False).head(top_n)
+
+        plt.figure(figsize=(10, 6))
+        ax = sns.barplot(x=top.values, y=top.index)
+        for i, (val, n) in enumerate(zip(top.values, counts.loc[top.index])):
+            ax.text(val, i, f" n={n}", va="center", ha="left", fontsize=9)
+        plt.title(f"Top {top_n} employee residences by adjusted 95th percentile salary (dynamic shrinkage)")
         plt.show()

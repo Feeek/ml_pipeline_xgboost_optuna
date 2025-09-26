@@ -1,16 +1,16 @@
+import os
+import hashlib
+import json
+import pandas as pd
+
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 from sklearn.metrics.pairwise import cosine_similarity
 from pandas import DataFrame
 from rapidfuzz import fuzz
 from tqdm import tqdm
-import json
 from datasets import Dataset
 from transformers.pipelines.pt_utils import KeyDataset
-
-# Disable HDBSCAN deprecation warnings
-import warnings
-warnings.filterwarnings("ignore", message=".*force_all_finite.*")
 
 
 class FeatureEngineer():
@@ -39,10 +39,34 @@ class FeatureEngineer():
 
 
     def prepare(self):
-        JOB_TITLE = 'job_title'
-
+        self._normalize_work_model()
         self._add_research_column()
+        self._merge_job_titles_categories()
 
+
+    def _normalize_work_model(self):
+        self.dataset["work_model"] = (
+            self.dataset["work_model"]
+            .str.strip()
+            .str.lower()
+            .str.replace("-", "", regex=False)
+        )
+
+        mapping = {
+            "onsite": "On-Site",
+            "remote": "Remote",
+            "hybrid": "Hybrid"
+        }
+        self.dataset["work_model"] = self.dataset["work_model"].map(mapping).fillna(self.dataset["work_model"])
+
+    def _add_research_column(self):
+        def is_about_research(text):
+            return fuzz.partial_ratio("research", str(text).lower()) >= 80
+
+        self.dataset['research_related'] = self.dataset["job_title"].apply(is_about_research)
+
+    def _merge_job_titles_categories(self):
+        JOB_TITLE = 'job_title'
 
         titles = self.dataset[JOB_TITLE].unique().tolist()
         embeddings = self.model.encode(titles, show_progress_bar=False)
@@ -110,19 +134,23 @@ class FeatureEngineer():
 
         self.dataset[JOB_TITLE] = self.dataset[JOB_TITLE].replace(mapping)
 
-    def _add_research_column(self):
-        def is_about_research(text):
-            return fuzz.partial_ratio("research", str(text).lower()) >= 80
 
-        self.dataset['research_related'] = self.dataset["job_title"].apply(is_about_research)
-
-
-    def cluster_careers(self, categories_json: str, batch_size: int = 16):
-        with open(categories_json, "r", encoding="utf-8") as f:
-            categories: dict = json.load(f)
+    def cluster_careers(self, categories_json: str, batch_size: int = 16, cache_dir="cache"):
+        os.makedirs(cache_dir, exist_ok=True)
 
         JOB_TITLE = "job_title"
         titles = self.dataset[JOB_TITLE].unique().tolist()
+
+        h = self.make_topics_hash(titles, categories_json)
+        cache_file = os.path.join(cache_dir, f"careers_{h}.parquet")
+
+        if os.path.exists(cache_file):
+            self.dataset = pd.read_parquet(cache_file)
+            print(f"[cache] Loaded from {cache_file}")
+            return
+
+        with open(categories_json, "r", encoding="utf-8") as f:
+            categories: dict = json.load(f)
 
         labels = list(categories.keys())
         candidate_labels = [categories[l] for l in labels]
@@ -146,6 +174,22 @@ class FeatureEngineer():
         for lab in labels:
             col = f"p_{lab.lower()}"
             self.dataset[col] = self.dataset[JOB_TITLE].map(lambda x: soft[x][lab])
+
+        # zapisz z wynikami do cache
+        self.dataset.to_parquet(cache_file, index=False)
+        print(f"[cache] Saved to {cache_file}")
+
+    def make_topics_hash(self, titles, topics_json: str):
+        with open(topics_json, "r", encoding="utf-8") as f:
+            topics = json.load(f)
+
+        data = {
+            "titles": sorted(titles),   # kolejność nie powinna zmieniać wyniku
+            "topics": topics            # pełna treść pliku
+        }
+
+        dump = json.dumps(data, sort_keys=True).encode("utf-8")
+        return hashlib.md5(dump).hexdigest()
 
 
     def print_examples(self, n=30):

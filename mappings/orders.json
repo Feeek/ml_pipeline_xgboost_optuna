@@ -1,0 +1,5 @@
+{
+    "company_size": ["Small", "Medium", "Large"],
+    "experience_level": ["Entry", "Mid", "Senior", "Executive"],
+    "work_model": ["On-Site", "Hybrid", "Remote"]
+}

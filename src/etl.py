@@ -38,6 +38,7 @@ class ETLPipeline():
 
 		self.datasets.append(df)
 
+
 	def transform(self, columns_map: str, values_map: str):
 		with open(columns_map) as file:
 			columns: dict = json.load(file)
@@ -45,28 +46,41 @@ class ETLPipeline():
 		with open(values_map) as file:
 			values: dict = json.load(file)
 
+		self._std_columns(columns)
+		self._std_countries()
+		self._std_custom(values)
+
+	def _std_custom(self, values: dict):
 		def map_values(df: DataFrame, column: str):
 			if column in df:
 				if all(isinstance(k, str) for k in values[column].keys()):
 					df[column] = df[column].astype(str)
 
 				df[column] = df[column].replace(values[column])
-		
+
+		for dataset in tqdm(self.datasets, desc="Std. custom"):
+			for key in values.keys():
+				map_values(dataset, key)
+
+	def _std_countries(self):
 		def normalize_country(value: str) -> str:
 			if value in self.cc_cache:
+				if self.cc_cache[value].lower() == 'venezuela':
+					pass
 				return self.cc_cache[value]
 
 			self.cc_cache[value] = self.cc.convert(names=value, to="name_short")
-			return self.cc_cache[value]
 
-		for dataset in tqdm(self.datasets, desc="Transforming"):
-			for key in values.keys():
-				map_values(dataset, key)
-			
+
+			return self.cc_cache[value]
+		
+		for dataset in tqdm(self.datasets, desc="Std. country names"):
 			for column in ["employee_residence", "company_location"]:
 				if column in dataset:
 					dataset[column] = dataset[column].apply(normalize_country)
-			
+
+	def _std_columns(self, columns: dict):
+		for dataset in tqdm(self.datasets, desc="Std. columns"):
 			dataset.rename(columns=columns, inplace=True)
 
 

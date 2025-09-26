@@ -1,6 +1,7 @@
 import os
 
 from eda import EDA
+from region_eda import RegionEDA
 from etl import ETLPipeline
 from feature_eng import FeatureEngineer
 
@@ -31,4 +32,13 @@ eng.prepare()
 eng.cluster_careers(os.path.join("mappings", "topics.json"))
 eng.print_examples(n = 10)
 
+dataset = eng.dataset
 
+
+report_eda = RegionEDA(dataset, order_data=os.path.join("mappings", "orders.json"))
+report_eda.geography_salary()
+report_eda.field_profiles()
+report_eda.salary_distributions()
+report_eda.salary_trends()
+report_eda.salary_vs_company_size()
+report_eda.salary_vs_work_model()
