@@ -1,3 +1,5 @@
+import os
+
 from eda import EDA
 from etl import ETLPipeline
 from feature_eng import FeatureEngineer
@@ -9,7 +11,10 @@ etl.extract("ruchi798/data-science-job-salaries", "ds_salaries.csv")
 etl.extract("sazidthe1/data-science-salaries", "data_science_salaries.csv")
 etl.extract("arnabchaki/data-science-salaries-2025", "salaries.csv")
 
-etl.transform()
+etl.transform(
+    columns_map=os.path.join("mappings", "columns.json"),
+    values_map=os.path.join("mappings", "values.json"),
+)
 
 dataset = etl.load()
 
@@ -23,7 +28,7 @@ eda.outliers(exclude_cols=["work_year", "salary"], top_n=5)
 eng = FeatureEngineer(dataset)
 eng.cleanup()
 eng.prepare()
-eng.cluster_careers("mappings/topics.json")
-eng.print_examples()
+eng.cluster_careers(os.path.join("mappings", "topics.json"))
+eng.print_examples(n = 10)
 
 

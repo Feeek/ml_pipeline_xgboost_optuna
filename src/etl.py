@@ -38,11 +38,11 @@ class ETLPipeline():
 
 		self.datasets.append(df)
 
-	def transform(self):
-		with open(os.path.join("mappings", "columns.json")) as file:
+	def transform(self, columns_map: str, values_map: str):
+		with open(columns_map) as file:
 			columns: dict = json.load(file)
 
-		with open(os.path.join("mappings", "values.json")) as file:
+		with open(values_map) as file:
 			values: dict = json.load(file)
 
 		def map_values(df: DataFrame, column: str):
