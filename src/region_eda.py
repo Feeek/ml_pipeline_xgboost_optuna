@@ -6,15 +6,12 @@ import json
 
 
 class RegionEDA():
-    def __init__(self, engl_nations: DataFrame, rest_nations: DataFrame, order_data: str, quantile: float = 0.95):
+    def __init__(self, engl_nations: DataFrame, rest_nations: DataFrame, order_data: str):
         with open(order_data, "r", encoding="utf-8") as f:
             self.order = json.load(f)
 
-        cutoff_engl = engl_nations["salary_in_usd"].quantile(quantile)
-        cutoff_rest = rest_nations["salary_in_usd"].quantile(quantile)
-
-        self.engl_dataset = engl_nations[engl_nations["salary_in_usd"] <= cutoff_engl]
-        self.rest_dataset = rest_nations[rest_nations["salary_in_usd"] <= cutoff_rest]
+        self.engl_dataset = engl_nations
+        self.rest_dataset = rest_nations
 
     def _plot_two(self, plot_func, title: str, figsize=(14, 6)):
         fig, axes = plt.subplots(1, 2, figsize=figsize)

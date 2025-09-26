@@ -65,13 +65,9 @@ class ETLPipeline():
 	def _std_countries(self):
 		def normalize_country(value: str) -> str:
 			if value in self.cc_cache:
-				if self.cc_cache[value].lower() == 'venezuela':
-					pass
 				return self.cc_cache[value]
 
 			self.cc_cache[value] = self.cc.convert(names=value, to="name_short")
-
-
 			return self.cc_cache[value]
 		
 		for dataset in tqdm(self.datasets, desc="Std. country names"):
