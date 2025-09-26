@@ -1,5 +1,6 @@
 from eda import EDA
 from etl import ETLPipeline
+from feature_eng import FeatureEngineer
 
 
 etl = ETLPipeline()
@@ -13,8 +14,14 @@ etl.transform()
 dataset = etl.load()
 
 
-eda = EDA(dataset)
-eda.describe()
-eda.correlations(target="salary_in_usd", exclude_cols=["salary"])
-eda.outliers(exclude_cols=["work_year", "salary"], top_n=5)
+# eda = EDA(dataset)
+# eda.describe()
+# eda.correlations(target="salary_in_usd", exclude_cols=["salary"])
+# eda.outliers(exclude_cols=["work_year", "salary"], top_n=5)
 
+
+eng = FeatureEngineer(dataset)
+eng.cleanup()
+eng.prepare()
+eng.cluster_careers("mappings/topics.json")
+eng.print_clusters(examples_per_group=10)
