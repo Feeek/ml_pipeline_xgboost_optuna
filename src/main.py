@@ -14,10 +14,10 @@ etl.transform()
 dataset = etl.load()
 
 
-# eda = EDA(dataset)
-# eda.describe()
-# eda.correlations(target="salary_in_usd", exclude_cols=["salary"])
-# eda.outliers(exclude_cols=["work_year", "salary"], top_n=5)
+eda = EDA(dataset)
+eda.describe()
+eda.correlations(target="salary_in_usd", exclude_cols=["salary"])
+eda.outliers(exclude_cols=["work_year", "salary"], top_n=5)
 
 
 eng = FeatureEngineer(dataset)
